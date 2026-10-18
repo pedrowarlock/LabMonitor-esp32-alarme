@@ -1,7 +1,7 @@
 #include "alerts.hpp"
 
 #include <time.h>
-#include "storage.hpp"
+#include "storage.hpp" 
 
 bool verificarTemperatura(float temperatura, const Config& config) {
   if (!config.alarme_temperatura) {

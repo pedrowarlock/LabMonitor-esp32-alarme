@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Monitor Lab</title>
+        <link rel="icon" href="/logo.jpg" type="image/jpeg" sizes="any" />
+        <link rel="stylesheet" href="/style.css">
+      </head>
+      <body>
+        <div id="loginView" class="login-view">
+          <div class="login-card">
+            <div class="eyebrow">ACESSO AO SISTEMA</div>
+            <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+              <select id="loginLanguageSelect" aria-label="Idioma" style="width:auto; padding:7px 9px;">
+                <option value="pt-BR">🇧🇷 Português</option>
+                <option value="en">🇺🇸 English</option>
+              </select>
+            </div>
+            <h1>Monitor Lab</h1>
+            <p class="muted">Entre com suas credenciais para acessar o painel.</p>
+            <label>Usuário</label>
+            <input id="loginUser" type="text" value="admin" />
+            <label>Senha</label>
+            <input id="loginPassword" type="password" value="admin" />
+            <div style="margin-top:18px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <button class="primary" id="loginBtn">Entrar</button>
+              <button class="secondary" id="visitorBtn" type="button">Entrar como visitante</button>
+            </div>
+            <div id="loginMessage" class="message" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div id="appView" class="hidden">
+          <header class="topbar">
+            <div class="brand-lockup">
+              <img class="brand-logo" src="/logo.jpg" alt="Logo da UERJ" />
+              <div>
+              <a class="eyebrow system-link" href="__SYSTEM_URL__">__SYSTEM_LINK__</a>
+              <span id="headerIp" class="eyebrow system-link">IP: aguardando</span>
+              <h1>Dashboard de Supervisão</h1>
+              </div>
+            </div>
+            <div class="top-actions">
+              <select id="languageSelect" aria-label="Idioma" style="width:auto; padding:7px 9px;">
+                <option value="pt-BR">🇧🇷 Português</option>
+                <option value="en">🇺🇸 English</option>
+              </select>
+              <span id="userBadge" class="muted">Usuário</span>
+              <span class="live-state">Sistema ativo</span>
+              <button id="logoutBtn" class="ghost" type="button">Sair</button>
+            </div>
+          </header>
+          <div class="workspace">
+            <aside class="sidebar">
+              <div class="nav-group">
+                <button class="nav-btn active" data-tab="overview" type="button">Visão geral</button>
+                <button class="nav-btn" data-tab="logs" type="button">Logs de alertas</button>
+                <button class="nav-btn" data-tab="sensors" type="button">Sensores</button>
+                <button class="nav-btn" data-tab="network" type="button">Rede</button>
+                <button class="nav-btn" data-tab="users" type="button">Usuários</button>
+                <button class="nav-btn" data-tab="maintenance" type="button">Manutenção</button>
+                <button class="nav-btn" data-tab="about" type="button">Sobre</button>
+              </div>
+              <div id="powerStatus" class="power-status power-status--battery" role="status" aria-live="polite">
+                <svg class="power-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="5" y="4" width="14" height="18" rx="2"></rect>
+                  <path d="M9 4V2h6v2"></path>
+                  <rect id="batteryLevelFill" class="power-icon-level" x="8" y="20" width="8" height="0" rx="1"></rect>
+                  <path class="power-icon-bolt" d="m13 7-4 7h3l-1 5 5-8h-3l1-4Z"></path>
+                  <path class="power-icon-discharge-outline" d="M12 8v8m0 0 3-3m-3 3-3-3"></path>
+                  <path class="power-icon-discharge" d="M12 8v8m0 0 3-3m-3 3-3-3"></path>
+                </svg>
+                <span id="powerStatusLabel">Na bateria</span>
+                <span id="batteryPercentLabel" class="power-level-label">--%</span>
+              </div>
+            </aside>
+            <main class="content">
+              <section id="tab-network" class="panel hidden">
+                <h2 class="section-title">Configuração de rede</h2>
+                <div class="submenu-nav" role="tablist" aria-label="Seções de rede">
+                  <button class="submenu-btn active" type="button" role="tab" aria-selected="true" data-submenu-group="network" data-submenu="wifi">Wi-Fi</button>
+                  <button class="submenu-btn" type="button" role="tab" aria-selected="false" data-submenu-group="network" data-submenu="connection">Conexão atual</button>
+                  <button class="submenu-btn" type="button" role="tab" aria-selected="false" data-submenu-group="network" data-submenu="dashboard-link">LAB/MONITOR</button>
+                </div>
+                <div class="submenu-panel" data-subpanel-group="network" data-subpanel="wifi">
+                <div class="inline-form" style="max-width:620px;">
+                  <div class="stretch">
+                    <button id="scanNetworksBtn" class="secondary" type="button">Escanear redes disponíveis</button>
+                    <span id="scanStatus" class="muted">A conexão atual será preservada durante o scan.</span>
+                  </div>
+                  <div id="networkList" class="muted">Nenhuma rede escaneada.</div>
+                  <div>
+                    <label>Nome da rede (SSID)</label>
+                    <input id="networkSsid" type="text" />
+                  </div>
+                  <div>
+                    <label>Tipo de segurança</label>
+                    <select id="networkSecurity" aria-describedby="securityDetectionHint">
+                      <option value="OPEN">Aberta</option>
+                      <option value="WPA-PSK">WPA/WPA2 pessoal</option>
+                      <option value="WPA2-ENTERPRISE">WPA2 Enterprise</option>
+                      <option value="WPA-ENTERPRISE">WPA Enterprise</option>
+                    </select>
+                    <div id="securityDetectionHint" class="muted">Selecione uma rede no scan para detectar automaticamente.</div>
+                  </div>
+                  <div id="personalPasswordField">
+                    <label>Senha da rede</label>
+                    <input id="networkPassword" type="password" />
+                  </div>
+                  <fieldset id="enterpriseFields" class="hidden">
+                    <legend>Credenciais Enterprise</legend>
+                    <label>Método Enterprise</label>
+                    <select id="enterpriseMethod">
+                      <option value="PEAP">PEAP-MSCHAPv2 | usuário e senha | segurança alta</option>
+                      <option value="TTLS">EAP-TTLS | certificado opcional | usuário e senha | segurança alta</option>
+                      <option value="FAST">EAP-FAST | certificado opcional | usuário e senha | segurança média/alta</option>
+                      <option value="TLS" disabled>EAP-TLS | certificado cliente obrigatório | segurança muito alta (não configurado)</option>
+                      <option value="PEAP-GTC" disabled>EAP-PEAP-GTC | não suportado pelo firmware atual</option>
+                      <option value="SIM" disabled>EAP-SIM | requer SIM | não suportado pelo firmware atual</option>
+                      <option value="AKA" disabled>EAP-AKA | requer SIM | não suportado pelo firmware atual</option>
+                      <option value="AKA_PRIME" disabled>EAP-AKA' | requer SIM | não suportado pelo firmware atual</option>
+                    </select>
+                    <input id="enterpriseIdentity" type="hidden" />
+                    <label>Login</label>
+                    <input id="enterpriseUsername" type="text" autocomplete="username" />
+                    <label>Senha</label>
+                    <input id="enterprisePassword" type="password" />
+                    <div id="ttlsPhase2Field" class="hidden">
+                      <label>Autenticação interna TTLS</label>
+                      <select id="enterpriseTtlsPhase2">
+                        <option value="MSCHAPV2">MSCHAPv2</option>
+                        <option value="PAP">PAP</option>
+                        <option value="CHAP">CHAP</option>
+                        <option value="MSCHAP">MSCHAP</option>
+                        <option value="EAP">EAP</option>
+                      </select>
+                    </div>
+                    <p id="enterpriseMethodHint" class="muted">A rede é Enterprise, mas o método EAP não é informado pelo scan. Selecione o método fornecido pela instituição.</p>
+                  </fieldset>
+                  <button id="saveNetworkBtn" class="primary" type="button">Salvar e conectar</button>
+                  <div id="networkMessage" class="muted" aria-live="polite"></div>
+                </div>
+                </div>
+                <div class="submenu-panel hidden" data-subpanel-group="network" data-subpanel="connection">
+                  <div class="network-status-grid">
+                    <div class="metric">
+                      <div class="label">Rede conectada</div>
+                      <div id="connectedNetworkName" class="value">Aguardando conexão</div>
+                    </div>
+                    <div class="metric">
+                      <div class="label">Endereço do aparelho</div>
+                      <div id="connectedNetworkIp" class="value">--</div>
+                      <div id="connectedNetworkHost" class="muted"></div>
+                    </div>
+                    <div class="metric">
+                      <div class="label">Tipo de conexão</div>
+                      <div id="connectedNetworkType" class="value">--</div>
+                      <div id="connectedNetworkInternet" class="muted"></div>
+                    </div>
+                  </div>
+                  <div class="network-connection-actions">
+                    <button id="deleteNetworkBtn" class="danger" type="button">Excluir rede salva e voltar ao ponto de acesso</button>
+                    <div id="networkStateMessage" class="muted" aria-live="polite"></div>
+                  </div>
+                </div>
+                <div class="submenu-panel hidden" data-subpanel-group="network" data-subpanel="dashboard-link">
+                  <div class="dashboard-link-card">
+                    <h3>Vincular ao LAB/MONITOR</h3>
+                    <p class="muted">Use a conta do servidor LAB/MONITOR. O ESP32 envia leituras automaticamente enquanto estiver conectado ao Wi-Fi.</p>
+                    <div id="dashboardLinkForm" class="inline-form">
+                      <div>
+                        <label for="dashboardServerUrl">Endereço do LAB/MONITOR</label>
+                        <input id="dashboardServerUrl" type="url" placeholder="https://monitor.exemplo.com" autocomplete="url" />
+                        <span class="muted">HTTPS é recomendado. HTTP está disponível para redes controladas.</span>
+                        <div id="dashboardHttpWarning" class="link-http-warning hidden">
+                          <label><input id="dashboardHttpAck" type="checkbox" /> Entendo que HTTP transmite e-mail, senha e token sem criptografia.</label>
+                        </div>
+                      </div>
+                      <div>
+                        <label for="dashboardLinkEmail">E-mail da conta LAB/MONITOR</label>
+                        <input id="dashboardLinkEmail" type="email" autocomplete="username" />
+                      </div>
+                      <div>
+                        <label for="dashboardLinkPassword">Senha da conta LAB/MONITOR</label>
+                        <input id="dashboardLinkPassword" type="password" autocomplete="current-password" />
+                      </div>
+                      <div>
+                        <label for="dashboardLinkLocation">Localização (opcional)</label>
+                        <input id="dashboardLinkLocation" type="text" maxlength="200" placeholder="Laboratório / Sala 01" />
+                      </div>
+                      <button id="dashboardLinkBtn" class="primary" type="button">Vincular aparelho</button>
+                    </div>
+                    <div id="dashboardLinkedState" class="dashboard-linked hidden" aria-live="polite">
+                      <span class="pill">Aparelho vinculado</span>
+                      <div id="dashboardLinkDetails" class="muted"></div>
+                      <div id="dashboardTransportStatus" class="muted"></div>
+                      <div id="dashboardLinkSendStatus" class="muted"></div>
+                      <button id="dashboardUnlinkBtn" class="danger" type="button">Remover vínculo</button>
+                    </div>
+                    <div id="dashboardLinkMessage" class="muted" aria-live="polite"></div>
+                    <p class="link-security-note">HTTPS valida o certificado do servidor. HTTP não criptografa credenciais ou leituras e só deve ser usado em rede confiável. A página local do ESP32 também usa HTTP.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section id="tab-overview" class="panel">
+                <h2 class="section-title" id="deviceNameTitle"></h2>
+                <div class="stretch" style="margin-bottom:18px; gap:14px; flex-wrap:wrap;">
+                  <span id="dateTimeDisplay" class="pill">Data e hora: --</span>
+                </div>
+                <div id="networkCard" class="metric" style="margin-top:18px;" data-visible-for="network">
+                  <div class="label">Rede e internet</div>
+                  <div id="networkName" class="value">--</div>
+                  <div id="networkAccessIp" class="muted">IP de acesso: aguardando</div>
+                  <div id="networkAccessHost" class="muted">Endereço: aguardando</div>
+                  <div id="networkConnectionType" class="muted">Tipo de conexão: aguardando</div>
+                  <div id="internetStatus" class="muted">Internet: verificando...</div>
+                </div>
+                <div class="grid-3" style="margin-top:20px;">
+                  <div class="metric" data-visible-for="temp">
+                    <div class="label">Temperatura</div>
+                    <div id="tempValue" class="value ok">-- °C</div>
+                  </div>
+                  <div class="metric" data-visible-for="umid">
+                    <div class="label">Umidade</div>
+                    <div id="humidityValue" class="value ok">-- %</div>
+                  </div>
+                  <div class="metric" data-visible-for="gas">
+                    <div class="label">Gás</div>
+                    <div id="gasValue" class="value ok">-- ADC</div>
+                  </div>
+                </div>
+                <section class="history-section" aria-labelledby="historyTitle">
+                  <div class="history-heading">
+                    <div>
+                      <h3 id="historyTitle">Variação dos sensores</h3>
+                      <p id="historyMessage" class="muted" aria-live="polite">Carregando histórico...</p>
+                    </div>
+                    <div class="history-filters" role="group" aria-label="Período do histórico">
+                      <button class="history-filter" type="button" data-history-days="30" aria-pressed="false">30 dias</button>
+                      <button class="history-filter" type="button" data-history-days="15" aria-pressed="false">15 dias</button>
+                      <button class="history-filter" type="button" data-history-days="7" aria-pressed="false">7 dias</button>
+                      <button class="history-filter active" type="button" data-history-days="1" aria-pressed="true">1 dia</button>
+                    </div>
+                  </div>
+                  <div class="history-grid">
+                    <article class="history-chart" data-history-series="temperature" data-visible-for="temp">
+                      <h4>Temperatura <span>°C</span></h4>
+                      <canvas id="temperatureChart" height="210" aria-label="Gráfico histórico de temperatura"></canvas>
+                    </article>
+                    <article class="history-chart" data-history-series="humidity" data-visible-for="umid">
+                      <h4>Umidade <span>%</span></h4>
+                      <canvas id="humidityChart" height="210" aria-label="Gráfico histórico de umidade"></canvas>
+                    </article>
+                    <article class="history-chart" data-history-series="gas" data-visible-for="gas">
+                      <h4>Gás <span>ADC</span></h4>
+                      <canvas id="gasChart" height="210" aria-label="Gráfico histórico de gás"></canvas>
+                    </article>
+                  </div>
+                </section>
+                <div class="stretch" style="margin-top:20px;">
+                  <span id="wifiState" class="pill" data-visible-for="wifi">Wi‑Fi: aguardando</span>
+                  <span id="alertState" class="pill warn">Sem alarmes</span>
+                  <button id="silenceAlarmBtn" class="secondary alarm-action" type="button">Desativar alarme sonoro</button>
+                </div>
+                <div class="overview-log metric">
+                  <h3>Últimos eventos</h3>
+                  <div id="overviewLogList" class="muted">Carregando eventos...</div>
+                </div>
+              </section>
+
+              <section id="tab-sensors" class="panel hidden">
+                <h2 class="section-title">Configuração dos sensores</h2>
+                <div class="submenu-nav" role="tablist" aria-label="Seções de sensores">
+                  <button class="submenu-btn active" type="button" role="tab" aria-selected="true" data-submenu-group="sensors" data-submenu="device">Aparelho</button>
+                  <button class="submenu-btn" type="button" role="tab" aria-selected="false" data-submenu-group="sensors" data-submenu="alerts">Sensores e alertas</button>
+                </div>
+                <div class="submenu-panel" data-subpanel-group="sensors" data-subpanel="device">
+                <div class="inline-form">
+                  <div>
+                    <label>Nome do aparelho</label>
+                    <input id="nomeAparelho" type="text" placeholder="" />
+                  </div>
+                  <div class="stretch">
+                    <button id="saveDeviceBtn" class="primary" type="button">Salvar aparelho</button>
+                  </div>
+                  <div id="deviceConfigMessage" class="muted" aria-live="polite"></div>
+                </div>
+                </div>
+                <div class="submenu-panel hidden" data-subpanel-group="sensors" data-subpanel="alerts">
+                <div class="inline-form">
+                  <div class="stretch">
+                    <div style="flex:1">
+                      <label>Temperatura mínima</label>
+                      <input id="tempMin" type="number" step="0.1" />
+                    </div>
+                    <div style="flex:1">
+                      <label>Temperatura máxima</label>
+                      <input id="tempMax" type="number" step="0.1" />
+                    </div>
+                  </div>
+                  <div class="stretch">
+                    <div style="flex:1">
+                      <label>Umidade mínima</label>
+                      <input id="umidMin" type="number" step="0.1" />
+                    </div>
+                    <div style="flex:1">
+                      <label>Umidade máxima</label>
+                      <input id="umidMax" type="number" step="0.1" />
+                    </div>
+                  </div>
+                  <div>
+                    <label>Gás crítico (ADC)</label>
+                    <input id="gasCritico" type="number" />
+                  </div>
+                  <fieldset>
+                    <legend>Alertas</legend>
+                    <label><input id="alarmeTemp" type="checkbox" /> Temperatura</label>
+                    <label><input id="alarmeUmid" type="checkbox" /> Umidade</label>
+                    <label><input id="alarmeGas" type="checkbox" /> Gás</label>
+                    <label><input id="ledAlerta" type="checkbox" /> LED de alarme</label>
+                    <label><input id="buzzer" type="checkbox" /> Buzzer</label>
+                  </fieldset>
+                  <div>
+                    <label>Intervalo de leitura (segundos)</label>
+                    <input id="intervaloLeitura" type="number" min="1" max="300" />
+                  </div>
+                  <div class="stretch">
+                    <button id="saveConfigBtn" class="primary" type="button">Salvar configurações</button>
+                  </div>
+                  <div id="configMessage" class="muted" aria-live="polite"></div>
+                </div>
+                </div>
+              </section>
+
+              <section id="tab-users" class="panel hidden">
+                <h2 class="section-title">Gerenciamento de usuários</h2>
+                <div class="submenu-nav" role="tablist" aria-label="Seções de usuários">
+                  <button class="submenu-btn active" type="button" role="tab" aria-selected="true" data-submenu-group="users" data-submenu="accounts">Contas</button>
+                  <button class="submenu-btn" type="button" role="tab" aria-selected="false" data-submenu-group="users" data-submenu="password">Modificar senha</button>
+                  <button class="submenu-btn" type="button" role="tab" aria-selected="false" data-submenu-group="users" data-submenu="visitors">Visitante</button>
+                  <button class="submenu-btn" type="button" role="tab" aria-selected="false" data-submenu-group="users" data-submenu="permissions">Permissões</button>
+                </div>
+                <div class="submenu-panel" data-subpanel-group="users" data-subpanel="accounts">
+                <div class="inline-form" style="max-width:520px;">
+                  <fieldset>
+                    <legend>Criar usuário</legend>
+                  <div class="stretch">
+                    <div style="flex:1">
+                      <label>Usuário</label>
+                      <input id="newUserName" type="text" />
+                    </div>
+                    <div style="flex:1">
+                      <label>Senha</label>
+                      <input id="newUserPassword" type="password" />
+                    </div>
+                    <div style="flex:1">
+                      <label>Confirmar senha</label>
+                      <input id="newUserPasswordConfirm" type="password" />
+                    </div>
+                  </div>
+                  <div>
+                    <label>Tipo</label>
+                    <select id="newUserRole">
+                      <option value="user">Usuário</option>
+                      <option value="admin">Administrador</option>
+                    </select>
+                  </div>
+                    <button id="createUserBtn" class="primary" type="button">Criar usuário</button>
+                  </fieldset>
+                </div>
+                <div style="margin-top:22px;">
+                  <table>
+                    <thead>
+                      <tr><th>Usuário</th><th>Tipo</th><th>Ação</th></tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                  </table>
+                </div>
+                </div>
+                <div class="submenu-panel hidden" data-subpanel-group="users" data-subpanel="password">
+                <div class="inline-form" style="max-width:520px;">
+                  <fieldset>
+                    <legend>Modificar senha</legend>
+                    <label>Usuário</label>
+                    <select id="changePasswordUser"></select>
+                    <label>Nova senha</label>
+                    <input id="changePasswordValue" type="password" />
+                    <label>Confirmar nova senha</label>
+                    <input id="changePasswordConfirm" type="password" />
+                    <button id="changePasswordBtn" class="secondary" type="button">Salvar nova senha</button>
+                    <div id="changePasswordMessage" class="muted" aria-live="polite"></div>
+                  </fieldset>
+                </div>
+                </div>
+                <div class="submenu-panel hidden" data-subpanel-group="users" data-subpanel="visitors">
+                <div class="inline-form" style="max-width:520px;">
+                  <fieldset>
+                    <legend>Acesso de visitante</legend>
+                    <label><input id="permVisitante" type="checkbox" /> Permitir botão “Entrar como visitante”</label>
+                    <p class="muted">Quando desativado, o botão não aparece no login e a entrada de visitante é bloqueada.</p>
+                    <button id="saveVisitorAccessBtn" class="secondary" type="button">Salvar</button>
+                    <div id="visitorAccessMessage" class="muted" aria-live="polite"></div>
+                  </fieldset>
+                </div>
+                </div>
+                <div class="submenu-panel hidden" data-subpanel-group="users" data-subpanel="permissions">
+                <div class="inline-form" style="max-width:520px;">
+                  <fieldset>
+                    <legend>Permissões para usuários comuns</legend>
+                    <label><input id="permVeTemp" type="checkbox" /> Pode visualizar temperatura</label>
+                    <label><input id="permVeUmid" type="checkbox" /> Pode visualizar umidade</label>
+                    <label><input id="permVeGas" type="checkbox" /> Pode visualizar nível de gás</label>
+                    <label><input id="permVeWifi" type="checkbox" /> Pode visualizar Wi‑Fi conectado</label>
+                    <label><input id="permVeRede" type="checkbox" /> Pode visualizar nome da rede e status da internet</label>
+                    <label><input id="permVeLogs" type="checkbox" /> Pode visualizar eventos</label>
+                    <label><input id="permSilenciar" type="checkbox" /> Pode desativar alarme sonoro</label>
+                  </fieldset>
+                  <fieldset>
+                    <legend>Permissões de visualização para visitantes</legend>
+                    <label><input id="visitanteVeTemp" type="checkbox" /> Pode visualizar temperatura</label>
+                    <label><input id="visitanteVeUmid" type="checkbox" /> Pode visualizar umidade</label>
+                    <label><input id="visitanteVeGas" type="checkbox" /> Pode visualizar nível de gás</label>
+                    <label><input id="visitanteVeWifi" type="checkbox" /> Pode visualizar Wi‑Fi conectado</label>
+                    <label><input id="visitanteVeRede" type="checkbox" /> Pode visualizar nome da rede e status da internet</label>
+                    <label><input id="visitanteVeLogs" type="checkbox" /> Pode visualizar eventos recentes</label>
+                    <label><input id="visitanteSilenciar" type="checkbox" /> Pode desativar alarme sonoro</label>
+                  </fieldset>
+                  <div class="stretch">
+                    <button id="saveUserPermBtn" class="secondary" type="button">Salvar permissões</button>
+                  </div>
+                </div>
+                </div>
+              </section>
+
+              <section id="tab-maintenance" class="panel hidden">
+                <h2 class="section-title">Manutenção</h2>
+                <div class="submenu-nav" role="tablist" aria-label="Seções de manutenção">
+                  <button class="submenu-btn active" type="button" role="tab" aria-selected="true" data-submenu-group="maintenance" data-submenu="backup">Backup e reset</button>
+                  <button class="submenu-btn" type="button" role="tab" aria-selected="false" data-submenu-group="maintenance" data-submenu="datetime">Data e hora</button>
+                </div>
+                <div class="submenu-panel" data-subpanel-group="maintenance" data-subpanel="backup">
+                <div class="inline-form" style="max-width:520px;">
+                  <div class="stretch">
+                    <button id="backupConfigBtn" class="secondary" type="button">Backup das configurações</button>
+                    <label class="secondary" for="restoreConfigInput">Selecionar backup</label>
+                    <input id="restoreConfigInput" type="file" accept="application/json" class="hidden" />
+                  </div>
+                  <button id="restoreConfigBtn" class="primary" type="button">Restaurar backup selecionado</button>
+                  <button id="factoryResetBtn" class="danger" type="button">Reset de fábrica</button>
+                  <div id="maintenanceMessage" class="muted" aria-live="polite"></div>
+                </div>
+                </div>
+                <div class="submenu-panel hidden" data-subpanel-group="maintenance" data-subpanel="datetime">
+                <div class="inline-form" style="max-width:520px;">
+                  <fieldset>
+                    <legend>Data e hora</legend>
+                    <label>Configuração manual</label>
+                    <input id="manualDateTime" type="datetime-local" />
+                    <div class="stretch" style="margin-top:12px;">
+                      <button id="syncTimeBtn" class="primary" type="button">Buscar hora atual da web</button>
+                      <button id="saveTimeBtn" class="secondary" type="button">Salvar data e hora</button>
+                    </div>
+                    <div id="timeSourceMessage" class="muted" aria-live="polite">Fonte ainda não consultada.</div>
+                  </fieldset>
+                </div>
+                </div>
+              </section>
+
+              <section id="tab-logs" class="panel hidden">
+                <h2 class="section-title">Logs de alertas</h2>
+                <div class="stretch" style="margin-bottom:18px;">
+                  <button id="clearLogsBtn" class="danger" type="button">Apagar logs</button>
+                </div>
+                <div id="logsContainer">Nenhum evento registrado.</div>
+              </section>
+
+              <section id="tab-about" class="panel hidden">
+                <h2 class="section-title">Sobre</h2>
+                <div class="about-hero">
+                  <img class="about-logo" src="/logo.jpg" alt="Ícone da UERJ" />
+                  <div>
+                    <span class="about-kicker">Projeto acadêmico de monitoramento</span>
+                    <h3>Monitoramento de Laboratório</h3>
+                    <p>Desenvolvido na <a href="https://www.uerj.br/" target="_blank" rel="noopener noreferrer">UERJ - Universidade do Estado do Rio de Janeiro</a>.</p>
+                  </div>
+                </div>
+
+                <div class="about-grid">
+                  <article class="about-card">
+                    <h3>Projeto e orientação</h3>
+                    <p><strong>Professor encarregado</strong><br />Carlos Augusto Sicsú</p>
+                    <p><strong>Desenvolvedores</strong><br />Pedro Antaris Pinheiro e Matheus Rebello</p>
+                    <p><strong>Instituição</strong><br />UERJ - Universidade do Estado do Rio de Janeiro</p>
+                  </article>
+
+                  <article class="about-card">
+                    <h3>Como utilizar</h3>
+                    <ol class="about-steps">
+                      <li>Ligue o aparelho e aguarde a inicialização.</li>
+                      <li>Se necessário, conecte-se à rede <strong>MONITOR-CONFIGURAR</strong>.</li>
+                      <li>Abra <strong>http://monitor-configurar.local</strong></li>
+                      <li>Entre com suas credenciais ou use o acesso de visitante.</li>
+                    </ol>
+                  </article>
+
+                  <article class="about-card">
+                    <h3>LED azul e Wi-Fi</h3>
+                    <ul class="about-list">
+                      <li><strong>Azul fixo:</strong> aparelho conectado ao Wi-Fi.</li>
+                      <li><strong>Azul piscando:</strong> modo de configuração ativo.</li>
+                      <li><strong>Padrão de configuração:</strong> três piscadas rápidas, fica aceso por aproximadamente 500 ms, apaga por aproximadamente 1 segundo e repete o ciclo.</li>
+                      <li>Depois que a rede é configurada, o ponto de acesso é desligado e o LED permanece aceso.</li>
+                    </ul>
+                  </article>
+
+                  <article class="about-card">
+                    <h3>Sensores e leituras</h3>
+                    <ul class="about-list">
+                      <li><strong>Temperatura:</strong> medida em graus Celsius pelo sensor DHT.</li>
+                      <li><strong>Umidade:</strong> apresentada em porcentagem pelo sensor DHT.</li>
+                      <li><strong>Gás:</strong> apresentado em ADC; valores maiores indicam maior sinal na saída analógica.</li>
+                      <li>As leituras são atualizadas automaticamente na Visão geral.</li>
+                    </ul>
+                  </article>
+
+                  <article class="about-card">
+                    <h3>Alertas</h3>
+                    <ul class="about-list">
+                      <li>Um alerta é criado quando temperatura, umidade ou gás ultrapassa o limite configurado.</li>
+                      <li>O LED vermelho pisca enquanto houver uma condição crítica.</li>
+                      <li>Pressione o botão físico para silenciar o alerta sonoro enquanto o alerta estiver ativo.</li>
+                      <li>Quando a condição volta ao normal, o sistema libera novos alertas sonoros.</li>
+                    </ul>
+                  </article>
+
+                  <article class="about-card">
+                    <h3>Configuração e manutenção</h3>
+                    <ul class="about-list">
+                      <li>Administradores podem configurar sensores, rede, usuários e permissões.</li>
+                      <li>Logs registram entradas em estado crítico e retornos ao normal.</li>
+                      <li>O backup salva as configurações para restauração posterior.</li>
+                      <li>O reset de fábrica apaga configurações, credenciais e logs. Use somente quando necessário.</li>
+                    </ul>
+                  </article>
+                </div>
+                <div class="about-warning"><strong>Atenção:</strong> este é um projeto acadêmico desenvolvido na UERJ. Ele não substitui detectores de fumaça ou equipamentos de segurança certificados.</div>
+              </section>
+            </main>
+          </div>
+        </div>
+
+        <div id="networkRestartOverlay" class="network-restart-overlay hidden" role="dialog" aria-modal="true" aria-live="polite">
+          <div class="network-restart-card">
+            <div class="eyebrow">RECONFIGURAÇÃO DE REDE</div>
+            <h2>Reiniciando rede</h2>
+            <p id="networkRestartMessage">Reiniciando, você será direcionado automaticamente para monitor-configurar.local</p>
+            <div class="network-restart-countdown"><span id="networkRestartSeconds">15</span>s</div>
+            <p>Redirecionando para:<br /><strong id="networkRestartUrl">http://monitor-configurar.local/</strong></p>
+          </div>
+        </div>
+
+        <script src="/script.js"></script>
+      </body>
+      </html>
